@@ -1,0 +1,283 @@
+=
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Handwritten Text Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .sidebar {
+            height: 100vh;
+            background-color: #1e2a38;
+            color: white;
+            padding-top: 20px;
+            position: fixed;
+            width: 250px;
+            overflow-y: auto;
+        }
+
+            .sidebar h4 {
+                text-align: center;
+                margin-bottom: 1rem;
+                font-weight: bold;
+                font-size: 22px;
+            }
+
+            .sidebar a {
+                color: #dfe6e9;
+                display: block;
+                padding: 10px 20px;
+                text-decoration: none;
+            }
+
+                .sidebar a:hover {
+                    background-color: #00b894;
+                    color: white;
+                }
+
+            .sidebar .submenu {
+                padding-left: 30px;
+                font-size: 14px;
+            }
+
+        .main-content {
+            margin-left: 270px;
+            padding: 30px;
+        }
+
+        h2.page-title {
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+        }
+
+        .loader {
+            display: none;
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .grammar-error {
+            background-color: #ffd6d6;
+            text-decoration: underline wavy red;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h4>📘 HTA Dashboard</h4>
+        <a href="#text-analysis">Text Analysis</a>
+        <div class="submenu">
+            <a href="#sentiment">↳ Sentiment</a>
+            <a href="#grammar">↳ Grammar</a>
+            <a href="#images">↳ Images</a>
+        </div>
+        <a href="#author-detection">Author Detection</a>
+        <a href="#plagiarism-check">Plagiarism Check</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <h2 class="page-title">Handwritten Text Analysis Dashboard</h2>
+
+        <!-- Upload Form -->
+        <div id="text-analysis" class="card mb-4">
+            <div class="card-header">Text Extraction & Analysis</div>
+            <div class="card-body">
+                <form id="upload-form" enctype="multipart/form-data">
+                    <input type="file" name="file" class="form-control mb-3" required>
+                    <button type="submit" class="btn btn-primary">Analyze</button>
+                </form>
+                <div class="loader" id="loader"></div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="result-section" style="display: none;">
+            <div class="card mb-4">
+                <div class="card-header">Analysis Results</div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#text">Text</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#sentiment">Sentiment</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#grammar">Grammar</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#images">Images</button></li>
+                    </ul>
+                    <div class="tab-content p-3 border border-top-0">
+                        <div class="tab-pane fade show active" id="text"><div id="extracted-text"></div></div>
+                        <div class="tab-pane fade" id="sentiment">
+                            <div id="sentiment-scores" class="mb-3"></div>
+                            <div id="emotion-analysis"></div>
+                            <img id="sentiment-visualization" class="img-fluid mt-3" />
+                        </div>
+                        <div class="tab-pane fade" id="grammar">
+                            <div id="grammar-text" class="p-3 bg-light rounded"></div>
+                            <ul id="error-list" class="list-group mt-3"></ul>
+                        </div>
+                        <div class="tab-pane fade" id="images">
+                            <img id="original-image" class="img-fluid rounded mb-2" />
+                            <img id="processed-image" class="img-fluid rounded" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Author Detection -->
+        <div id="author-detection" class="card mb-4">
+            <div class="card-header">Author Detection</div>
+            <div class="card-body">
+                <form id="author-form" enctype="multipart/form-data">
+                    <input type="file" name="file" class="form-control mb-3" required>
+                    <button type="submit" class="btn btn-success">Predict Author</button>
+                </form>
+                <div class="loader" id="author-loader"></div>
+                <div id="author-result" class="mt-4" style="display: none;">
+                    <p><strong>Author:</strong> <span id="predicted-author"></span></p>
+                    <p><strong>Confidence:</strong> <span id="author-confidence"></span></p>
+                    <img id="author-image" class="img-fluid rounded" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Plagiarism Check -->
+        <div id="plagiarism-check" class="card mb-4">
+            <div class="card-header">Plagiarism Check</div>
+            <div class="card-body">
+                <form id="plagiarism-form" enctype="multipart/form-data">
+                    <input type="file" name="file1" class="form-control mb-2" required>
+                    <input type="file" name="file2" class="form-control mb-2" required>
+                    <button type="submit" class="btn btn-danger">Check Similarity</button>
+                </form>
+                <div class="loader" id="plagiarism-loader"></div>
+                <div id="plagiarism-result" class="mt-4" style="display: none;">
+                    <p><strong>Text 1:</strong> <span id="plagiarism-text1"></span></p>
+                    <p><strong>Text 2:</strong> <span id="plagiarism-text2"></span></p>
+                    <p><strong>Similarity:</strong> <span id="similarity-score"></span>%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function highlightGrammarErrors(text, errors) {
+            if (errors.length === 0) return text;
+            errors.sort((a, b) => b.offset - a.offset);
+            let result = text;
+            errors.forEach(error => {
+                const start = error.offset, end = start + error.length;
+                const marked = `<span class="grammar-error" title="${error.message} (${error.replacements.join(', ')})">${result.substring(start, end)}</span>`;
+                result = result.substring(0, start) + marked + result.substring(end);
+            });
+            return result.replace(/\n/g, '<br>');
+        }
+
+        document.getElementById('upload-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            document.getElementById('loader').style.display = 'block';
+
+            fetch('/upload', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('loader').style.display = 'none';
+                    if (data.error) return alert(data.error);
+                    document.getElementById('result-section').style.display = 'block';
+                    document.getElementById('extracted-text').textContent = data.extracted_text;
+                    document.getElementById('sentiment-scores').innerHTML = `
+                <p><strong>Negative:</strong> ${data.sentiment.vader_scores.neg.toFixed(2)}</p>
+                <p><strong>Neutral:</strong> ${data.sentiment.vader_scores.neu.toFixed(2)}</p>
+                <p><strong>Positive:</strong> ${data.sentiment.vader_scores.pos.toFixed(2)}</p>
+                <p><strong>Compound:</strong> ${data.sentiment.vader_scores.compound.toFixed(2)}</p>`;
+                    document.getElementById('emotion-analysis').innerHTML = `
+                <p><strong>Emotion:</strong> ${data.sentiment.emotion}</p>
+                <p><strong>Polarity:</strong> ${data.sentiment.polarity.toFixed(2)}</p>
+                <p><strong>Subjectivity:</strong> ${data.sentiment.subjectivity.toFixed(2)}</p>`;
+                    document.getElementById('sentiment-visualization').src = 'data:image/png;base64,' + data.sentiment_visualization;
+                    document.getElementById('grammar-text').innerHTML = highlightGrammarErrors(data.extracted_text, data.grammar_errors);
+                    document.getElementById('original-image').src = '/static/uploads/' + data.original_image;
+                    document.getElementById('processed-image').src = '/static/uploads/' + data.processed_image;
+
+                    const errorList = document.getElementById('error-list');
+                    errorList.innerHTML = '';
+                    if (data.grammar_errors.length === 0) {
+                        errorList.innerHTML = '<li class="list-group-item">No grammar issues found.</li>';
+                    } else {
+                        data.grammar_errors.forEach((err, i) => {
+                            errorList.innerHTML += `<li class="list-group-item">
+                    <strong>${i + 1})</strong> ${err.message}<br/>
+                    <em>Suggestions:</em> ${err.replacements.join(', ')}
+                  </li>`;
+                        });
+                    }
+                }).catch(err => alert('Error: ' + err));
+        });
+
+        document.getElementById('author-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            document.getElementById('author-loader').style.display = 'block';
+
+            fetch('/predict-author', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('author-loader').style.display = 'none';
+                    if (data.error) return alert(data.error);
+                    document.getElementById('author-result').style.display = 'block';
+                    document.getElementById('predicted-author').textContent = data.predicted_author;
+                    document.getElementById('author-confidence').textContent = (data.confidence * 100).toFixed(2);
+                    document.getElementById('author-image').src = '/static/uploads/' + data.uploaded_image;
+                })
+                .catch(err => alert('Error: ' + err));
+        });
+
+        document.getElementById('plagiarism-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            document.getElementById('plagiarism-loader').style.display = 'block';
+
+            fetch('/plagiarism', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('plagiarism-loader').style.display = 'none';
+                    if (data.error) return alert(data.error);
+                    document.getElementById('plagiarism-result').style.display = 'block';
+                    document.getElementById('plagiarism-text1').textContent = data.text1;
+                    document.getElementById('plagiarism-text2').textContent = data.text2;
+                    document.getElementById('similarity-score').textContent = data.similarity;
+                })
+                .catch(err => alert('Error: ' + err));
+        });
+    </script>
+</body>
+</html>
